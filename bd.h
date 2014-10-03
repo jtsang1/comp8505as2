@@ -14,11 +14,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netinet/ip.h>
+#include <pthread.h>
 
 /*
 | ------------------------------------------------------------------------------
@@ -30,6 +32,11 @@
 #define WIN_SIZE        55840
 #define DEFAULT_TTL		255
 #define DEFAULT_IP_ID   12345
+
+#define DEFAULT_SRC_IP      "192.168.1.72"
+#define DEFAULT_SRC_PORT    12345
+#define DEFAULT_DST_IP      "192.168.1.77"  //"104.131.142.21"
+#define DEFAULT_DST_PORT    12345
 
 /*
 | ------------------------------------------------------------------------------
@@ -67,9 +74,11 @@ struct addr_info {
     int sport;
 };
 
-void client(struct client_opt);
+void client(struct client_opt c_opt);
+int send_datagram(struct addr_info *user_addr);
 void server();
 void packet_handler();
 void usage();
 unsigned short csum(unsigned short *, int);
+static void system_fatal(const char* message);
 
