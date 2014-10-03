@@ -99,9 +99,7 @@ void client(struct client_opt c_opt){
     
     /* Encrypt command */
     
-    /* Craft packet with options */
-    
-    
+    /* Set packet options */
     
     /* Send packet */
     
@@ -138,7 +136,7 @@ void server(){
 | ------------------------------------------------------------------------------
 */
 
-int send_datagram (struct addr_info *UserAddr) {
+int send_datagram(struct addr_info *user_addr){
     
     /* Declare variables */
     
@@ -149,8 +147,8 @@ int send_datagram (struct addr_info *UserAddr) {
     pseudo_header psh;
 
     sin.sin_family = AF_INET;
-    sin.sin_port = htons(UserAddr->dport);
-    sin.sin_addr.s_addr = inet_addr(UserAddr->dhost);
+    sin.sin_port = htons(user_addr->dport);
+    sin.sin_addr.s_addr = inet_addr(user_addr->dhost);
     
     // Zero out the buffer where the datagram will be stored
     memset(datagram, 0, PKT_SIZE); 
@@ -166,15 +164,15 @@ int send_datagram (struct addr_info *UserAddr) {
     iph->ttl = DEFAULT_TTL;
     iph->protocol = IPPROTO_TCP;
     iph->check = 0; // Initialize to zero before calculating checksum
-    iph->saddr = inet_addr(UserAddr->shost);
+    iph->saddr = inet_addr(user_addr->shost);
     iph->daddr = sin.sin_addr.s_addr;
  
     iph->check = csum((unsigned short *) datagram, iph->tot_len >> 1);
  
     /* TCP header */
     
-    tcph->source = htons (UserAddr->sport);
-    tcph->dest = htons (UserAddr->dport);
+    tcph->source = htons (user_addr->sport);
+    tcph->dest = htons (user_addr->dport);
     tcph->seq = 0;
     tcph->ack_seq = 0;
     tcph->doff = 5; // Data Offset is set to the TCP header length 
@@ -190,7 +188,7 @@ int send_datagram (struct addr_info *UserAddr) {
    
     /* Calculate Checksum */
     
-    psh.source_address = inet_addr(UserAddr->shost);
+    psh.source_address = inet_addr(user_addr->shost);
     psh.dest_address = sin.sin_addr.s_addr;
     psh.placeholder = 0;
     psh.protocol = IPPROTO_TCP;
@@ -205,13 +203,13 @@ int send_datagram (struct addr_info *UserAddr) {
     {
         int one = 1;
         const int *val = &one;
-        if (setsockopt (UserAddr->raw_socket, IPPROTO_IP, IP_HDRINCL, val, sizeof (one)) < 0)
+        if (setsockopt (user_addr->raw_socket, IPPROTO_IP, IP_HDRINCL, val, sizeof (one)) < 0)
             perror ("setsockopt");
     }
  
     /* Send the packet */
     
-    if(sendto(UserAddr->raw_socket, datagram, iph->tot_len, 0, (struct sockaddr *) &sin, sizeof (sin)) < 0){
+    if(sendto(user_addr->raw_socket, datagram, iph->tot_len, 0, (struct sockaddr *) &sin, sizeof (sin)) < 0){
         perror ("sendto");
         return -1;
     }

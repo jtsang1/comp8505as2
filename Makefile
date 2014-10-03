@@ -8,8 +8,8 @@ MAIN=backdoor
 
 
 # Main program
-$(MAIN):bd.o chksum.o
-	$(CC) $(CFLAGS) -o $(MAIN)  bd.o chksum.o
+$(MAIN):bd.o chksum.o 
+	$(CC) $(CFLAGS) -o $(MAIN)  bd.o chksum.o 
 
 bd.o:bd.c
 	$(CC) $(CFLAGS) -c bd.c
