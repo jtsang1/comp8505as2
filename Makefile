@@ -1,7 +1,18 @@
 # Makefile for backdoor assignment
+
+# Configuration
 CC=gcc
 CFLAGS=-Wall
+MAIN=backdoor
 
-backdoor:bd.c
-    $(CC) $(CFLAGS) bd.c -o backdoor
 
+
+# Main program
+$(MAIN):bd.o
+	$(CC) $(CFLAGS) -o $(MAIN)  bd.o
+
+bd.o:bd.c
+	$(CC) $(CFLAGS) -c bd.c
+
+clean:
+	rm *.o $(MAIN)

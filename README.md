@@ -1,1 +1,1 @@
-# Packet-sniffing backdoor written in C
+# Packet-sniffing backdoor in C
