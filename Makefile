@@ -4,7 +4,7 @@
 CC=gcc
 CFLAGS=-Wall
 MAIN=backdoor
-LIBS=-lpthread
+LIBS=-lpthread -lpcap
 
 
 # Main program

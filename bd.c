@@ -33,7 +33,10 @@ int main(int argc, char **argv){
 
     /* Make sure is root user */
     
-    
+    if(geteuid() != 0){
+        printf("Must be root user.\n");
+        return 1;
+    }
 
     /* Parse arguments */
     
@@ -116,12 +119,13 @@ void client(struct client_opt c_opt){
     user_addr.raw_socket = socket(PF_INET, SOCK_RAW, IPPROTO_TCP);
     int arg = 1;
     if(setsockopt(user_addr.raw_socket, SOL_SOCKET, SO_REUSEADDR, &arg, sizeof(arg)) == -1)
-	    system_fatal("setsockopt");
+        system_fatal("setsockopt");
     
     // Send packet
     send_datagram(&user_addr);
     
     /* Listen for results and print */
+    
 }
 
 /*
@@ -140,12 +144,63 @@ void server(){
     
     /* Initialize variables and functions */
     
+    pcap_t *handle;                 /* Session handle */
+    char *dev;                      /* The device to sniff on */
+    char errbuf[PCAP_ERRBUF_SIZE];  /* Error string */
+    struct bpf_program fp;          /* The compiled filter */
+    char filter_exp[] = "port 12345"; /* The filter expression */
+    bpf_u_int32 mask;               /* Our netmask */
+    bpf_u_int32 net;                /* Our IP */
+    struct pcap_pkthdr header;      /* The header that pcap gives us */
+    const u_char *packet;           /* The actual packet */
+    
+    // Get network interface
+    dev = "wlp4s5"; //dev = pcap_lookupdev(errbuf);
+    if(dev == NULL) {
+        printf("Couldn't find default device: %s\n", errbuf);
+        system_fatal("pcap_lookupdev");
+    }
+    printf("Device: %s\n", dev);
+    
+    // Get interface properties
+    if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1) {
+        fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf);
+        net = 0;
+        mask = 0;
+    }
+    
+    // Open sniffing session
+    
+    handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
+    if(handle == NULL) {
+        fprintf(stderr, "Couldn't open device: %s\n", errbuf);
+        system_fatal("pcap_open_live");
+    }
+    
     /* Build packet filter */
     
-    /* Activate packet filter */
+    // Compile filter
+    if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
+        fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
+        system_fatal("pcap_compile");
+    }
+    
+    // Apply filter
+    if (pcap_setfilter(handle, &fp) == -1){
+        fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle));
+        system_fatal("pcap_setfilter");
+    }
     
     /* Packet capture loop */
-
+    
+    // Grab a packet
+	packet = pcap_next(handle, &header);
+	
+	// Print its length
+	printf("Jacked a packet with length of [%d]\n", header.len);
+	
+	// And close the session
+	pcap_close(handle);
 }
 
 /*
