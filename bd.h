@@ -51,6 +51,7 @@
 #define BD_FOOTER       "footerrr"
 #define BD_KEY_LEN      8
 #define BD_MAX_MSG_LEN  1024
+
 /*
 | ------------------------------------------------------------------------------
 | Prototypes
