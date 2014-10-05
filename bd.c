@@ -45,9 +45,11 @@ int main(int argc, char **argv){
     c_opt.target_host[0] = '\0';
     c_opt.command[0] = '\0';
     c_opt.target_port = 0;
+    struct server_opt s_opt;
+    s_opt.device[0] = '\0';
     
     int opt;
-    while((opt = getopt(argc, argv, "hsd:p:x:")) != -1){
+    while((opt = getopt(argc, argv, "hsc:d:p:x:")) != -1){
         switch(opt){
             case 'h':
                 usage();
@@ -55,6 +57,9 @@ int main(int argc, char **argv){
                 break;
             case 's':
                 is_server = 1;
+                break;
+            case 'c':
+                strcpy(s_opt.device, optarg);
                 break;
             case 'd':
                 strcpy(c_opt.target_host, optarg);
@@ -74,7 +79,13 @@ int main(int argc, char **argv){
     /* Validation then run client or server */
     
     if(is_server){
-        server();
+        if(s_opt.device[0] == '\0'){
+            printf("Type -h for usage help.\n");
+            return 1;
+        }
+        else{
+            server(s_opt);
+        }
     }
     else{
         if(c_opt.target_host[0] == '\0' || c_opt.command[0] == '\0' || c_opt.target_port == 0){
@@ -134,7 +145,7 @@ void client(struct client_opt c_opt){
 | ------------------------------------------------------------------------------
 */
 
-void server(){
+void server(struct server_opt s_opt){
 
     printf("Running server...\n");
 
@@ -155,7 +166,7 @@ void server(){
     const u_char *packet;           /* The actual packet */
     
     // Get network interface
-    dev = "wlp4s5"; //dev = pcap_lookupdev(errbuf);
+    dev = s_opt.device; //dev = "wlp4s5"; //dev = pcap_lookupdev(errbuf);
     if(dev == NULL) {
         printf("Couldn't find default device: %s\n", errbuf);
         system_fatal("pcap_lookupdev");
@@ -343,7 +354,8 @@ void usage(){
     printf("  -p <target_port>  The target port to send to.\n");
     printf("  -x <command>      The command to run on the target host.\n");
     printf("SERVER\n");
-    printf("  -s                Enables server mode. No other options necessary.\n");
+    printf("  -s                Enables server mode.\n");
+    printf("  -c <device_name>  Network interface device name.\n");
     printf("\n");
 }
 

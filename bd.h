@@ -54,6 +54,12 @@ struct client_opt{
     int target_port;
 };
 
+/* Options to pass to server function */
+
+struct server_opt{
+    char device[128];
+};
+
 /* TCP checksum pseudo-header */
 
 typedef struct {
@@ -78,7 +84,7 @@ struct addr_info {
 
 void client(struct client_opt c_opt);
 int send_datagram(struct addr_info *user_addr);
-void server();
+void server(struct server_opt s_opt);
 void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 void usage();
 unsigned short csum(unsigned short *, int);
