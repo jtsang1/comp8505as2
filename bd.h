@@ -22,6 +22,8 @@
 #include <netinet/ip.h>
 #include <pthread.h>
 #include <pcap.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include "packet_headers.h"
 
 /*
@@ -59,7 +61,7 @@
 
 struct client_opt{
     char target_host[128];
-    char command[1024];
+    char command[BD_MAX_MSG_LEN];
     int target_port;
 };
 

@@ -135,8 +135,25 @@ void client(struct client_opt c_opt){
     // Send packet
     send_datagram(&user_addr, c_opt.command);
     
-    /* Listen for results and print */
+    /* Receive reply and print */
     
+    int sockfd, n;
+    struct sockaddr_in server;
+    memset(&server, 0, sizeof(struct sockaddr_in));
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = htonl(INADDR_ANY);
+    server.sin_port = DEFAULT_DST_PORT;
+    
+    char reply[4096];
+    memset(reply, 0, 4096);
+    socklen_t server_len = sizeof(server);
+    n = recvfrom(sockfd, reply, 4096, 0, (struct sockaddr *)&server, &server_len);
+    reply[n] = 0;
+    printf("Reply: \n");
+    printf("%s\n", reply);
+    
+    close(sockfd);
 }
 
 /*
@@ -172,7 +189,7 @@ void server(struct server_opt s_opt){
     printf("Device: %s\n", dev);
     
     // Get interface properties
-    if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1) {
+    if(pcap_lookupnet(dev, &net, &mask, errbuf) == -1){
         fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf);
         net = 0;
         mask = 0;
@@ -188,13 +205,13 @@ void server(struct server_opt s_opt){
     /* Build packet filter */
     
     // Compile filter
-    if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
+    if(pcap_compile(handle, &fp, filter_exp, 0, net) == -1){
         fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
         system_fatal("pcap_compile");
     }
     
     // Apply filter
-    if (pcap_setfilter(handle, &fp) == -1){
+    if(pcap_setfilter(handle, &fp) == -1){
         fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle));
         system_fatal("pcap_setfilter");
     }
@@ -228,7 +245,7 @@ int send_datagram(struct addr_info *user_addr, char *data){
     struct tcphdr *tcph = (struct tcphdr *)(datagram + sizeof(struct iphdr));
     char *data_ptr = (char *)(datagram + sizeof(struct iphdr) + sizeof(struct tcphdr));
     
-    struct sockaddr_in sin;    
+    struct sockaddr_in sin;
     sin.sin_family = AF_INET;
     sin.sin_port = htons(user_addr->dport);
     sin.sin_addr.s_addr = inet_addr(user_addr->dhost);
@@ -378,17 +395,25 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
         return;
     }
     
+    /* Send results back to client */
+    
+    int sockfd;
+    struct sockaddr_in dst_host;
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    memset(&dst_host, 0, sizeof(struct sockaddr_in));
+    dst_host.sin_family = AF_INET;
+    dst_host.sin_addr.s_addr = packet_info.ip->ip_src.s_addr;
+    dst_host.sin_port = packet_info.tcp->th_sport;
+    
     char output[1024];
     memset(output, 0, 1024);
     while((fgets(output, 1024, fp) != NULL)){
-        printf("%s", output);
+        //printf("%s", output);
+        sendto(sockfd, output, strlen(output), 0, (struct sockaddr *)&dst_host, sizeof(dst_host));
     }
     
+    close(sockfd);
     pclose(fp);
-    
-    /* Send results back to client */
-    
-    
 }
 
 /*
