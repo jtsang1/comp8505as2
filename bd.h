@@ -69,12 +69,12 @@ typedef struct {
     unsigned char protocol;
     unsigned short tcp_length;
     struct tcphdr tcp;
+    char *data;
 }pseudo_header;
 
 /* Raw socket object with options */
 
 struct addr_info {
-
     int raw_socket;
     char *dhost;
     char *shost;
@@ -83,7 +83,7 @@ struct addr_info {
 };
 
 void client(struct client_opt c_opt);
-int send_datagram(struct addr_info *user_addr);
+int send_datagram(struct addr_info *user_addr, char *data);
 void server(struct server_opt s_opt);
 void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 void usage();

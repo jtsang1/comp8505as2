@@ -78,15 +78,13 @@ int tcp_ip_typecast(const u_char *packet, struct tcp_ip_packet *packet_info){
 
     u_int size_ip;
     u_int size_tcp;
-    printf("HERE!\n");
+    
     // Ethernet
     packet_info->ethernet = (struct sniff_ethernet *)(packet);
-    printf("HERE2!\n");
+    
     // IP
     packet_info->ip = (struct sniff_ip *)(packet + SIZE_ETHERNET);
-    printf("HERE3!\n");
     size_ip = IP_HL(packet_info->ip)*4;
-    printf("HERE4!\n");
     if(size_ip < 20){
         printf("Invalid IP header length: %u bytes\n", size_ip);
         return 0;

