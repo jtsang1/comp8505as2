@@ -430,10 +430,9 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     
     char output[1024];
     memset(output, 0, 1024);
-    while((fgets(output, 1024, fp) != NULL)){
-        //printf("%s", output);
-        sendto(sockfd, output, strlen(output), 0, (struct sockaddr *)&dst_host, sizeof(dst_host));
-    }
+    fread((void *)output, sizeof(char), 1024, 
+    
+    sendto(sockfd, output, strlen(output), 0, (struct sockaddr *)&dst_host, sizeof(dst_host));
     
     close(sockfd);
     pclose(fp);
