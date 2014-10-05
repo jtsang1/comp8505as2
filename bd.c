@@ -323,7 +323,7 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
         return;
     }
     
-    printf("IP Protocol: %c\n", packet_info.ip->ip_p);
+    printf("IP Protocol: %s\n", packet_info.payload);
     
     /* Check the packet for the header key meant for the backdoor */
     
@@ -348,14 +348,14 @@ void usage(){
     printf("COMP 8505 Assignment 2 - Packet Sniffing Backdoor\n");
     printf("Usage: ./backdoor [OPTIONS]\n");
     printf("---------------------------\n");
-    printf("  -h                Display this help.\n");
+    printf("  -h                    Display this help.\n");
     printf("CLIENT (default)\n");
-    printf("  -d <target_host>  The target host where the backdoor server is running.\n");
-    printf("  -p <target_port>  The target port to send to.\n");
-    printf("  -x <command>      The command to run on the target host.\n");
+    printf("  -d <target_host>      The target host where the backdoor server is running.\n");
+    printf("  -p <target_port>      The target port to send to.\n");
+    printf("  -x <command>          The command to run on the target host.\n");
     printf("SERVER\n");
-    printf("  -s                Enables server mode.\n");
-    printf("  -c <device_name>  Network interface device name.\n");
+    printf("  -s                    Enables server mode.\n");
+    printf("  -c <device_name>      Network interface device name.\n");
     printf("\n");
 }
 
