@@ -148,12 +148,13 @@ void client(struct client_opt c_opt){
         
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = htonl(INADDR_ANY);
+    //server.sin_addr.s_addr = inet_addr(c_opt.target_host);
     server.sin_port = DEFAULT_DST_PORT;
     
-    char reply[4096];
-    memset(reply, 0, 4096);
+    char reply[1024];
+    memset(reply, 0, 1024);
     socklen_t server_len = sizeof(server);
-    n = recvfrom(sockfd, reply, 4096, 0, (struct sockaddr *)&server, &server_len);
+    n = recvfrom(sockfd, reply, 1024, 0, (struct sockaddr *)&server, &server_len);
     reply[n] = 0;
     printf("Reply: \n");
     printf("%s\n", reply);
@@ -347,7 +348,7 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     // Get packet info
     struct tcp_ip_packet packet_info;
     if(tcp_ip_typecast(packet, &packet_info) == 0){
-        perror("tcp_ip_typecast");
+        //printf("tcp_ip_typecast");
         return;
     }
     printf("Payload (len:%zu): %s\n", strlen((char *)packet_info.payload), packet_info.payload);
