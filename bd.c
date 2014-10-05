@@ -137,24 +137,31 @@ void client(struct client_opt c_opt){
     
     /* Receive reply and print */
     
+    // Initialize variables
     printf("Waiting for reply...\n");
     int sockfd, n;
     struct sockaddr_in server, client;
     memset(&server, 0, sizeof(struct sockaddr_in));
+    memset(&client, 0, sizeof(struct sockaddr_in));
+    
+    // Create socket with SO_REUSEADDR
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     arg = 1;
     if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &arg, sizeof(arg)) == -1)
         system_fatal("setsockopt");
-        
+    
+    // Setup server info and bind
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = htonl(INADDR_ANY);
-    server.sin_port = DEFAULT_DST_PORT;
+    server.sin_port = htons(DEFAULT_DST_PORT);
     bind(sockfd, (struct sockaddr *)&server, sizeof(server));
     
+    // Receive UDP packet and print results
     char reply[1024];
     memset(reply, 0, 1024);
     socklen_t client_len = sizeof(client);
-    n = recvfrom(sockfd, reply, 1024, 0, (struct sockaddr *)&client, &client_len);
+    printf("recvfrom...\n");
+    n = recvfrom(sockfd, reply, sizeof(reply), 0, (struct sockaddr *)&client, &client_len);
     reply[n] = 0;
     printf("Reply: \n");
     printf("%s\n", reply);
