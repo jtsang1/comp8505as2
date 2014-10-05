@@ -139,7 +139,7 @@ void client(struct client_opt c_opt){
     
     printf("Waiting for reply...\n");
     int sockfd, n;
-    struct sockaddr_in server;
+    struct sockaddr_in server, client;
     memset(&server, 0, sizeof(struct sockaddr_in));
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     arg = 1;
@@ -153,8 +153,8 @@ void client(struct client_opt c_opt){
     
     char reply[1024];
     memset(reply, 0, 1024);
-    socklen_t server_len = sizeof(server);
-    n = recvfrom(sockfd, reply, 1024, 0, (struct sockaddr *)&server, &server_len);
+    socklen_t client_len = sizeof(client);
+    n = recvfrom(sockfd, reply, 1024, 0, (struct sockaddr *)&client, &client_len);
     reply[n] = 0;
     printf("Reply: \n");
     printf("%s\n", reply);
