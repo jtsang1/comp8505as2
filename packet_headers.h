@@ -66,16 +66,40 @@ struct sniff_tcp {
 /* Structure to hold all the parsed headers */
 
 struct tcp_ip_packet{
-    struct sniff_ethernet ethernet;
-    struct sniff_ip ip;
-    struct sniff_tcp tcp;
-    char *payload;
-}
+    const struct sniff_ethernet *ethernet;
+    const struct sniff_ip *ip;
+    const struct sniff_tcp *tcp;
+    const u_char *payload;
+};
 
-/* Cast the packet into multiple header structures */
+/* Typecast the packet into multiple header structures */
 
-void tcp_ip_typecast(u_char *packet, struct tcp_ip_packet *packet_info){
+int tcp_ip_typecast(const u_char *packet, struct tcp_ip_packet *packet_info){
 
+    u_int size_ip;
+    u_int size_tcp;
+    printf("HERE!\n");
+    // Ethernet
+    packet_info->ethernet = (struct sniff_ethernet *)(packet);
+    printf("HERE2!\n");
+    // IP
+    packet_info->ip = (struct sniff_ip *)(packet + SIZE_ETHERNET);
+    printf("HERE3!\n");
+    size_ip = IP_HL(packet_info->ip)*4;
+    printf("HERE4!\n");
+    if(size_ip < 20){
+        printf("Invalid IP header length: %u bytes\n", size_ip);
+        return 0;
+    }
     
-        
+    // TCP
+    packet_info->tcp = (struct sniff_tcp *)(packet + SIZE_ETHERNET + size_ip);
+    size_tcp = TH_OFF(packet_info->tcp)*4;
+    if(size_tcp < 20){
+        printf("Invalid TCP header length: %u bytes\n",size_tcp);
+        return 0;
+    }
+    packet_info->payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + size_tcp);
+    
+    return 1;
 }

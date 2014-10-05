@@ -22,6 +22,7 @@
 #include <netinet/ip.h>
 #include <pthread.h>
 #include <pcap.h>
+#include "packet_headers.h"
 
 /*
 | ------------------------------------------------------------------------------
@@ -78,7 +79,7 @@ struct addr_info {
 void client(struct client_opt c_opt);
 int send_datagram(struct addr_info *user_addr);
 void server();
-void packet_handler();
+void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 void usage();
 unsigned short csum(unsigned short *, int);
 static void system_fatal(const char* message);

