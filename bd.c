@@ -142,6 +142,10 @@ void client(struct client_opt c_opt){
     struct sockaddr_in server;
     memset(&server, 0, sizeof(struct sockaddr_in));
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    arg = 1;
+    if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &arg, sizeof(arg)) == -1)
+        system_fatal("setsockopt");
+        
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = htonl(INADDR_ANY);
     server.sin_port = DEFAULT_DST_PORT;
@@ -407,6 +411,10 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     int sockfd;
     struct sockaddr_in dst_host;
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    int arg = 1;
+    if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &arg, sizeof(arg)) == -1)
+        system_fatal("setsockopt");
+        
     memset(&dst_host, 0, sizeof(struct sockaddr_in));
     dst_host.sin_family = AF_INET;
     dst_host.sin_addr.s_addr = packet_info.ip->ip_src.s_addr;
