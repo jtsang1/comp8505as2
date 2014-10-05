@@ -148,8 +148,8 @@ void client(struct client_opt c_opt){
         
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = htonl(INADDR_ANY);
-    //server.sin_addr.s_addr = inet_addr(c_opt.target_host);
     server.sin_port = DEFAULT_DST_PORT;
+    bind(sockfd, (struct sockaddr *)&server, sizeof(server));
     
     char reply[1024];
     memset(reply, 0, 1024);
