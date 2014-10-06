@@ -163,8 +163,8 @@ void client(struct client_opt c_opt){
     bind(sockfd, (struct sockaddr *)&server, sizeof(server));
     
     // Receive UDP packet and print results
-    char reply[1024];
-    memset(reply, 0, 1024);
+    char reply[BD_MAX_REPLY_LEN];
+    memset(reply, 0, BD_MAX_REPLY_LEN);
     socklen_t client_len = sizeof(client);
     printf("recvfrom...\n");
     n = recvfrom(sockfd, reply, sizeof(reply), 0, (struct sockaddr *)&client, &client_len);
