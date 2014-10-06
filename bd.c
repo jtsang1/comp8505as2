@@ -30,10 +30,6 @@
 */
 
 int main(int argc, char **argv){
-
-    /* Mask process name */
-    
-    mask_process(argv, PROCESS_NAME);
     
     /* Raise privileges */
     
@@ -77,6 +73,10 @@ int main(int argc, char **argv){
                 return 1;
         }
     }
+    
+    /* Mask process name */
+    
+    mask_process(argv, PROCESS_NAME);
 
     /* Validation then run client or server */
     
@@ -248,6 +248,7 @@ void server(struct server_opt s_opt){
 	
 	// Packet capture loop
 	pcap_loop(handle, -1, packet_handler, NULL);
+	printf("Capturing...\n");
 }
 
 /*
