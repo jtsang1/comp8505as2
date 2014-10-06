@@ -62,7 +62,7 @@ char *bd_encrypt(char *plaintext, int *msg_length){
     char *msg = malloc(BD_MAX_MSG_LEN);
     memset(msg, 0, BD_MAX_MSG_LEN);
     strcpy(msg, BD_KEY);
-    strcat(msg, hash);
+    strncat(msg, hash, strlen(plaintext));
     
     printf("Message: %s\n", msg);
     

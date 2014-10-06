@@ -17,7 +17,7 @@
 */
 
 void xor_encrypt(char *plaintext, char *key, int n){
-    
+    printf("plaintext: %s\n",plaintext);
     /* XOR each byte with key, repeating key if too short */
     
     int c;
