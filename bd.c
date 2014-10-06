@@ -339,7 +339,7 @@ int send_datagram(struct addr_info *user_addr, char *data, int data_len){
  
     /* Send the packet */
     
-    if(sendto(user_addr->raw_socket, datagram, iph->tot_len, 0, (struct sockaddr *)&sin, sizeof(sin)) < 0){
+    if(sendto(user_addr->raw_socket, datagram, ntohs(iph->tot_len), 0, (struct sockaddr *)&sin, sizeof(sin)) < 0){
         system_fatal("sendto");
         return -1;
     }
