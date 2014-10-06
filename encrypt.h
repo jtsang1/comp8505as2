@@ -16,7 +16,7 @@
 | ------------------------------------------------------------------------------
 */
 
-int xor_encrypt(char *plaintext, char *key, int n){
+void xor_encrypt(char *plaintext, char *key, int n){
     
     /* XOR each byte with key, repeating key if too short */
     
@@ -25,6 +25,4 @@ int xor_encrypt(char *plaintext, char *key, int n){
     for(c = 0;c < n;c++){
         plaintext[c] = plaintext[c] ^ key[c % keylen];
     }
-    
-    return 1;
 }
