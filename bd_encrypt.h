@@ -28,11 +28,13 @@
 | - wrap a header and footer around the plaintext
 | - encrypt the string
 | - prepend a key to the hash
-| 
+|
+| Notes:
+| - Pass hash_length to be filled with the encrypted message length
 | ------------------------------------------------------------------------------
 */
 
-char *bd_encrypt(char *plaintext){
+char *bd_encrypt(char *plaintext, int *msg_length){
     printf("Encrypt plaintext: %s\n",plaintext);
     /* Declare variables */
     
@@ -63,6 +65,10 @@ char *bd_encrypt(char *plaintext){
     strcat(msg, hash);
     
     printf("Message: %s\n", msg);
+    
+    /* Save total message length */
+    
+    *msg_length = (3 * BD_KEY_LEN) + strlen(plaintext);
     
     return msg; // Free this pointer after use
 }
