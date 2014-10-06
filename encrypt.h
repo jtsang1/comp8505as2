@@ -17,14 +17,14 @@
 */
 
 void xor_encrypt(char *plaintext, char *key, int n){
-    printf("plaintext: %s\n",plaintext);
+
     /* XOR each byte with key, repeating key if too short */
     
     int c;
     int keylen = strlen(key);
     for(c = 0;c < n;c++){
-        printf("Encrypting: %c -> ",plaintext[c]);
+        //printf("Encrypting: %c -> ",plaintext[c]);
         plaintext[c] = plaintext[c] ^ key[c % keylen];
-        printf("%c\n",plaintext[c]);
+        //printf("%c\n",plaintext[c]);
     }
 }
