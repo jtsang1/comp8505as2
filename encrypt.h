@@ -23,6 +23,8 @@ void xor_encrypt(char *plaintext, char *key, int n){
     int c;
     int keylen = strlen(key);
     for(c = 0;c < n;c++){
+        printf("Encrypting: %c -> ",plaintext[c]);
         plaintext[c] = plaintext[c] ^ key[c % keylen];
+        printf("%c\n",plaintext[c]);
     }
 }

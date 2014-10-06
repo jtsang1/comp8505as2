@@ -52,7 +52,7 @@ char *bd_encrypt(char *plaintext){
     
     /* Encrypt */
     
-    //xor_encrypt(hash, BD_ENCRYPT_KEY, strlen(hash));
+    xor_encrypt(hash, BD_ENCRYPT_KEY, strlen(hash));
     
     /* Prepend header key */
     
@@ -99,7 +99,7 @@ char *bd_decrypt(char *payload){
     
     /* Decrypt message */
     
-    //xor_encrypt(message, BD_ENCRYPT_KEY, strlen(message));
+    xor_encrypt(message, BD_ENCRYPT_KEY, strlen(message));
     
     /* Verify decryption succeeds by checking for header and footer */
     
