@@ -29,7 +29,7 @@
 */
 
 char *encrypt(char *plaintext){
-    
+    printf("Encrypt plaintext: %s\n",plaintext);
     /* Declare variables */
     
     char hash[BD_MAX_MSG_LEN];
@@ -44,7 +44,7 @@ char *encrypt(char *plaintext){
     }
     strcat(hash, plaintext);
     strcat(hash, BD_FOOTER);
-    
+    printf("asdf\n");
     /* Encrypt */
     
     
@@ -52,7 +52,7 @@ char *encrypt(char *plaintext){
     /* Prepend header key */
     
     char *msg = malloc(BD_MAX_MSG_LEN);
-    memset(&msg, 0, BD_MAX_MSG_LEN);
+    memset(msg, 0, BD_MAX_MSG_LEN);
     strcpy(msg, BD_KEY);
     strcat(msg, hash);
     
@@ -74,7 +74,7 @@ char *encrypt(char *plaintext){
 */
 
 char *decrypt(char *payload){
-    
+    printf("Decrypt payload: %s\n",payload);
     /* Copy only encrypted portion of the payload to message */
     
     char message[BD_MAX_MSG_LEN];
