@@ -314,7 +314,7 @@ int send_datagram(struct addr_info *user_addr, char *data, int data_len){
    
     /* Data */
     
-    strcpy(data_ptr, data);
+    strncpy(data_ptr, data, data_len);
       
     /* Calculate Checksum */
     
