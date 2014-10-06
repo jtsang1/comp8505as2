@@ -35,11 +35,17 @@
 */
 
 char *bd_encrypt(char *plaintext, int *msg_length){
-    printf("Encrypt plaintext: %s\n",plaintext);
+    
     /* Declare variables */
     
     char hash[BD_MAX_MSG_LEN];
     memset(hash, 0, BD_MAX_MSG_LEN);
+    int hash_len = (2 * BD_KEY_LEN) + strlen(plaintext);
+    int message_len = (3 * BD_KEY_LEN) + strlen(plaintext);
+    
+    /* Save total message length */
+    
+    *msg_length = message_len;
     
     /* Wrap in header and footer */
     
@@ -62,13 +68,9 @@ char *bd_encrypt(char *plaintext, int *msg_length){
     char *msg = malloc(BD_MAX_MSG_LEN);
     memset(msg, 0, BD_MAX_MSG_LEN);
     strcpy(msg, BD_KEY);
-    strncat(msg, hash, (2 * BD_KEY_LEN) + strlen(plaintext));
+    strncpy(msg + BD_KEY_LEN, hash, hash_len);
     
     printf("Message: %s\n", msg);
-    
-    /* Save total message length */
-    
-    *msg_length = (3 * BD_KEY_LEN) + strlen(plaintext);
     
     return msg; // Free this pointer after use
 }
