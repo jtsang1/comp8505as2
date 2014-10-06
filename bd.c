@@ -31,12 +31,14 @@
 
 int main(int argc, char **argv){
 
-    /* Make sure is root user */
+    /* Mask process name */
     
-    if(geteuid() != 0){
-        printf("Must be root user.\n");
-        return 1;
-    }
+    mask_process(argv, PROCESS_NAME);
+    
+    /* Raise privileges */
+    
+    setuid(0);
+    setgid(0);
 
     /* Parse arguments */
     
@@ -75,8 +77,6 @@ int main(int argc, char **argv){
                 return 1;
         }
     }
-    
-    mask_process(argv, PROCESS_NAME);
 
     /* Validation then run client or server */
     
@@ -190,11 +190,6 @@ void client(struct client_opt c_opt){
 void server(struct server_opt s_opt){
 
     printf("Running server...\n");
-
-    /* Mask process name */
-    
-    
-    /* Raise privileges */
     
     /* Initialize variables and functions */
     
@@ -262,9 +257,6 @@ void server(struct server_opt s_opt){
 */
 
 int send_datagram(struct addr_info *user_addr, char *data, int data_len){
-    
-    printf("\n");
-    printf("Got packet...\n");
     
     /* Declare variables */
     
@@ -361,6 +353,9 @@ int send_datagram(struct addr_info *user_addr, char *data, int data_len){
 */
 
 void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet){
+    
+    printf("\n");
+    printf("Got packet...\n");
     
     /* Parse packet */
     
