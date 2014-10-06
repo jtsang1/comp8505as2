@@ -8,13 +8,12 @@
 
 #include "encrypt.h"
 
-/*#define BD_KEY          "W1OExkq&"
-#define BD_HEADER       "0bBH%iKU"
-#define BD_FOOTER       "5@lbJKXK"*/
-
-#define BD_KEY              "keyyyyyy"
+#define BD_KEY              "W1OExkq&"
+#define BD_HEADER           "0bBH%iKU"
+#define BD_FOOTER           "5@lbJKXK"
+/*#define BD_KEY              "keyyyyyy"
 #define BD_HEADER           "headerrr"
-#define BD_FOOTER           "footerrr"
+#define BD_FOOTER           "footerrr"*/
 #define BD_ENCRYPT_KEY      "tQi8kvZ$~Mi+4qxKYXpBC2d_S2kmJBA["
 #define BD_KEY_LEN          8
 #define BD_MAX_MSG_LEN      1024
@@ -54,7 +53,6 @@ char *bd_encrypt(char *plaintext, int *msg_length){
     }
     strcat(hash, plaintext);
     strcat(hash, BD_FOOTER);
-    printf("asdf\n");
     
     /* Encrypt */
     

@@ -163,14 +163,13 @@ void client(struct client_opt c_opt){
     // Setup server info and bind
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = htonl(INADDR_ANY);
-    server.sin_port = htons(DEFAULT_DST_PORT);
+    server.sin_port = htons(DEFAULT_SRC_PORT);
     bind(sockfd, (struct sockaddr *)&server, sizeof(server));
     
     // Receive UDP packet and print results
     char reply[BD_MAX_REPLY_LEN];
     memset(reply, 0, BD_MAX_REPLY_LEN);
     socklen_t client_len = sizeof(client);
-    printf("recvfrom...\n");
     n = recvfrom(sockfd, reply, sizeof(reply), 0, (struct sockaddr *)&client, &client_len);
     reply[n] = 0;
     printf("Reply: \n");
@@ -263,6 +262,9 @@ void server(struct server_opt s_opt){
 */
 
 int send_datagram(struct addr_info *user_addr, char *data, int data_len){
+    
+    printf("\n");
+    printf("Got packet...\n");
     
     /* Declare variables */
     

@@ -41,10 +41,8 @@
 #define DEFAULT_TTL		255
 #define DEFAULT_IP_ID   12345
 
-#define DEFAULT_SRC_IP      "192.168.1.77"
-#define DEFAULT_SRC_PORT    12345
-#define DEFAULT_DST_IP      "192.168.1.72"  //"104.131.142.21"
-#define DEFAULT_DST_PORT    12345
+#define DEFAULT_SRC_IP      "192.168.1.77"  // Backdoor replies will be sent to 
+#define DEFAULT_SRC_PORT    12345           // this address and port
 
 /*
 | ------------------------------------------------------------------------------
