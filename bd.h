@@ -27,7 +27,7 @@
 #include <sys/prctl.h>
 #include <sys/types.h>
 #include "packet_headers.h"
-#include "encrypt.h"
+#include "bd_encrypt.h"
 
 /*
 | ------------------------------------------------------------------------------

