@@ -25,6 +25,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "packet_headers.h"
+#include "encrypt.h"
 
 /*
 | ------------------------------------------------------------------------------
@@ -41,16 +42,6 @@
 #define DEFAULT_SRC_PORT    12345
 #define DEFAULT_DST_IP      "192.168.1.72"  //"104.131.142.21"
 #define DEFAULT_DST_PORT    12345
-
-/*#define BD_KEY          "W1OExkq&"
-#define BD_HEADER       "0bBH%iKU"
-#define BD_FOOTER       "5@lbJKXK"*/
-
-#define BD_KEY          "keyyyyyy"
-#define BD_HEADER       "headerrr"
-#define BD_FOOTER       "footerrr"
-#define BD_KEY_LEN      8
-#define BD_MAX_MSG_LEN  1024
 
 /*
 | ------------------------------------------------------------------------------

